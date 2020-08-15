@@ -20,9 +20,35 @@ cliente = JSON.parse(cliente);
 
 firebase.initializeApp(cliente);
 
-//HEALTH
-router.get('/health', (req, res) => {
-    res.send("It's alive")
-})
+// Creating Cloud Firestore instance
+admin.initializeApp({
+  credential: admin.credential.cert(keys),
+  storageBucket: process.env.STORAGE_BUCKET,
+});
+
+const auth = admin.auth();
+
+// referencia a cloud firestore
+const db = admin.firestore();
+
+const autenticacionService = require('./services/autenticacionService.js')(db, auth, firebase)
+const autenticacionController = require('./controllers/autenticacionController.js')(autenticacionService)
+
+
+/*** Endpoints de autenticación ***/
+
+// iniciar sesion
+router.post('/sessionLogin', autenticacionController.sessionLogin);
+
+//cerrar sesion
+router.get('/sessionLogout', autenticacionController.sessionLogout)
+
+// cambiar contraseña
+router.post("/cambiarContrasena", autenticacionController.cambiarContrasena);
+
+
+// cambiar contraseña
+router.post("/recuperarContrasena", autenticacionController.recuperarContrasena);
+
 
 module.exports = router;
