@@ -85,9 +85,16 @@ module.exports = (db, auth, firebase) => {
                             res.send("Contraseña recuperada");
                         }).catch(error => {
                             console.log(error);
-                            res.send(error);
+                            res.status(401).send({
+                                message: error.code,
+                            });
                         });
-                }).catch();
+                }).catch(error => {
+                    console.log(error);
+                    res.status(401).send({
+                        message: error.code,
+                    });
+                });
         }
     }
 }
