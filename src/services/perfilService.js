@@ -1,4 +1,4 @@
-module.exports = (db, auth) => {
+module.exports = (db, auth, storage) => {
     return {
         getPerfil: (req, res, next) => {
             auth.getUser(req.query.uid)
