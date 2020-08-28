@@ -25,7 +25,6 @@ admin.initializeApp({
   credential: admin.credential.cert(keys),
   storageBucket: process.env.STORAGE_BUCKET,
 });
-
 const auth = admin.auth();
 
 // referencia a cloud firestore
@@ -33,6 +32,12 @@ const db = admin.firestore();
 
 const autenticacionService = require('./services/autenticacionService.js')(db, auth, firebase)
 const autenticacionController = require('./controllers/autenticacionController.js')(autenticacionService)
+
+const usuariosService = require('./services/usuariosService.js')(db, auth)
+const usuariosController = require('./controllers/usuariosController.js')(usuariosService)
+
+const perfilService = require('./services/perfilService.js')(db, auth)
+const perfilController = require('./controllers/perfilController.js')(perfilService)
 
 
 /*** Endpoints de autenticación ***/
@@ -49,6 +54,32 @@ router.post("/cambiarContrasena", autenticacionController.cambiarContrasena);
 
 // cambiar contraseña
 router.post("/recuperarContrasena", autenticacionController.recuperarContrasena);
+
+
+
+/*** Endpoints de usuarios ***/
+
+// obtener usuarios resumidos
+router.get("/getUsuarios", usuariosController.getUsuarios);
+
+// obtener todos los datos de un solo usuario
+router.get("/getUsuario", usuariosController.getUsuarioById);
+
+// crear un usuario
+router.post("/addUsuario", usuariosController.addUsuario);
+
+// editar un usuario
+router.post("/editUsuario", usuariosController.editUsuario);
+
+// eliminar un usuario
+router.delete("/deleteUsuario", usuariosController.deleteUsuario);
+
+/*** Endpoints de perfil ***/
+
+// obtener el perfil del usuario actual
+router.get("/getPerfil", perfilController.getPerfil);
+
+
 
 
 module.exports = router;
