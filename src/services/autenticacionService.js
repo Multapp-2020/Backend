@@ -7,6 +7,7 @@ module.exports = (db, auth, firebase) => {
         firebase.auth().signInWithEmailAndPassword(email, password)
             .then(({ user }) => {
                 return user.getIdToken().then(idToken => {
+                    //const expiresIn = 60 * 60 * 8 * 1000;
                     auth.getUserByEmail(email)
                         .then(userRecord => {
                             res.send({
@@ -52,14 +53,32 @@ module.exports = (db, auth, firebase) => {
 
     return {
         sessionLogin: (req, res, next) => {
+            /* 
+            const idToken = req.body.idToken.toString();
+            const expiresIn = 60 * 60 * 8 * 1000;
+            admin
+                .auth().createSessionCookie(idToken, { expiresIn })
+                .then(
+                (sessionCookie) => {
+                    const options = { maxAge: expiresIn, httpOnly: true };
+                    res.cookie("session", sessionCookie, options);
+                    res.end(JSON.stringify({ status: "Success" }));
+                },
+                (error) => {
+                    res.status(401).send("UNAUTHORIZED REQUEST!");
+                }
+            ); 
+            */
             let email = req.body.email.toString();
             let password = req.body.password.toString();
             iniciarSesion(email, password, res);
         },
         sessionLogout: (req, res, next) => {
             res.clearCookie("session");
+            //res.redirect("/");
         },
         cambiarContrasena: (req, res, next) => {
+            // FALTA HACER
             // verificar que req.body.contrasenaActual sea realmente la contraseña actual
             auth.updateUser(req.body.uid, {
                 password: req.body.contrasenaNueva,
@@ -72,6 +91,7 @@ module.exports = (db, auth, firebase) => {
                 });
         },
         recuperarContrasena: (req, res, next) => {
+            // FALTA HACER
             // mandar mail con la nueva contraseña
             const password = (Math.floor(Math.random() * (1000000 - 100000) ) + 100000).toString();
             console.log("password", password);

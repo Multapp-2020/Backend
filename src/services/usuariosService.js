@@ -1,15 +1,39 @@
-module.exports = (db, auth) => {
+module.exports = (db, auth, storage) => {
     return {
         getUsuarioById: (req, res, next) => {
-            db.collection("usuarios").doc(req.query.id).get()
-                .then(snapshot => {
-                    res.send({
-                        id: snapshot.id,
-                        ...snapshot.data(),
+            auth.getUser(req.query.id)
+            .then(userRecord => {
+                db.collection("usuarios").doc(userRecord.uid).get()
+                    .then(snapshot => {
+                        const datos = {
+                            id: userRecord.uid,
+                            foto: userRecord.photoURL,
+                            displayName: userRecord.displayName,
+                            rol: userRecord.customClaims.rol,
+                            email: userRecord.email,
+                            dni: snapshot.data().dni,
+                            apellido: snapshot.data().apellido,
+                            nombre: snapshot.data().nombre,
+                            fechaNacimiento: snapshot.data().fechaNacimiento,
+                            sexo: snapshot.data().sexo,
+                            telefono: userRecord.phoneNumber,
+                            direccion: snapshot.data().calle + " " + snapshot.data().numero,
+                            calle: snapshot.data().calle,
+                            numero: snapshot.data().numero,
+                            piso: snapshot.data().piso,
+                            departamento: snapshot.data().departamento,
+                            localidad: snapshot.data().localidad,
+                            provincia: snapshot.data().provincia,
+                        }
+                        res.send(datos);
+                    }).catch(error => {
+                        console.log(error);
+                        res.send(error);
                     });
-                }).catch(error => {
-                    console.log("Error al recuperar usuario " + req.query.id, error);
-                });
+            }).catch(error => {
+                console.log(error);
+                res.status(500).send("Error al obtener datos de usuario");
+            });
         },
         getUsuarios: (req, res, next) => {
             auth.listUsers()
@@ -40,7 +64,7 @@ module.exports = (db, auth) => {
                 email: req.body.email,
                 password: password,
                 displayName: req.body.datos.nombre + " " + req.body.datos.apellido,
-                phoneNumber: "+54" + req.body.telefono,
+                phoneNumber: req.body.telefono,
             })
                 .then(userRecord => {
                     let uid = userRecord.uid;
@@ -67,15 +91,21 @@ module.exports = (db, auth) => {
                                         // })
                                 }).catch(error => {
                                     console.log(error);
-                                    res.status(500).send(error);
+                                    res.status(500).send({
+                                        message: error.code,
+                                    });
                                 });
                         }).catch(error => {
                             console.log(error);
-                            res.status(500).send(error);
+                            res.status(500).send({
+                                message: error.code,
+                            });
                         });
                 }).catch(error => {
                     console.log(error);
-                    res.status(500).send(error);
+                    res.status(500).send({
+                        message: error.code,
+                    });
                 });
         },
         editUsuario: (req, res, next) => {
@@ -84,7 +114,7 @@ module.exports = (db, auth) => {
             // mandarle correo al tipo con el cambio de correo
             auth.updateUser(req.body.id, {
                 email: req.body.email,
-                phoneNumber: "+54" + req.body.telefono,
+                phoneNumber: req.body.telefono,
                 displayName: req.body.datos.nombre + " " + req.body.datos.apellido,
             })
                 .then(() => {
@@ -92,11 +122,16 @@ module.exports = (db, auth) => {
                         .then(() => {
                             res.status(200).send("Usuario " + req.body.id + " actualizado correctamente");
                         }).catch(error => {
-                            res.send("Error al actualizar usuario " + req.body.id, error);
+                            console.log(error);
+                            res.status(500).send({
+                                message: error.code,
+                            });
                         });
                 }).catch(error => {
                     console.log(error);
-                    res.status(500).send(error);
+                    res.status(500).send({
+                        message: error.code,
+                    });
                 });
             
         },
