@@ -1,4 +1,4 @@
-module.exports = (db, auth, storage) => {
+module.exports = (db, auth, imageService) => {
     return {
         getUsuarioById: (req, res, next) => {
             auth.getUser(req.query.id)
@@ -54,16 +54,15 @@ module.exports = (db, auth, storage) => {
                     res.status(500).send(error);
                 });
         },
-        addUsuario: (req, res, next) => {
+        addUsuario: (req, res, storage) => {
             // aca tambien habria que:
-            // guardar la foto del tipo en storage
             // mandarle correo al tipo con su contraseña
             let password = (Math.floor(Math.random() * (1000000 - 100000) ) + 100000).toString();
             console.log(password);
             auth.createUser({ // crea el usuario
                 email: req.body.email,
                 password: password,
-                displayName: req.body.datos.nombre + " " + req.body.datos.apellido,
+                displayName: req.body.nombre + " " + req.body.apellido,
                 phoneNumber: req.body.telefono,
             })
                 .then(userRecord => {
@@ -71,24 +70,38 @@ module.exports = (db, auth, storage) => {
                     auth.setCustomUserClaims(uid, {rol: req.body.rol}) // setea el rol del usuario
                         .then(() => { // guarda los datos personales en la base de datos
                             db.collection("usuarios").doc(uid).set({
-                                ...req.body.datos,
+                                dni: req.body.dni,
+                                apellido: req.body.apellido,
+                                nombre: req.body.nombre,
+                                fechaNacimiento: req.body.fechaNacimiento,
+                                sexo: req.body.sexo,
+                                calle: req.body.calle,
+                                numero: req.body.numero,
+                                piso: req.body.piso,
+                                departamento: req.body.departamento,
+                                localidad: req.body.localidad,
+                                provincia: req.body.provincia,                    
                             })
                                 .then(() => {
-                                    // storage.ref().child("avatar/" + uid).put(req.body.foto) // guarda la foto de perfil
-                                    //     .then(snapshot => {
-                                    //         console.log(snapshot);
-                                            // userRecord.updateUser({ // guarda la referencia a la foto en authentication
-                                            //     // photoURL
-                                            // })
-                                            //     .then(() => {
+                                    imageService.uploader("avatar", uid, req, res, null) // sube su avatar a storage
+                                        .then(publicURL => {
+                                            auth.updateUser(uid, { // asigna la url del avatar al usuario
+                                                photoURL: publicURL,
+                                            })
+                                                .then(() => {
                                                     res.status(201).send("Usuario " + uid + " creado correctamente");
-                                                // }).catch(error => {
-                                                //     res.status(500).send(error);
-                                                // });
-                                        // }).catch(error => {
-                                        //     console.log(error);
-                                        //     res.status(500).send(error);
-                                        // })
+                                                }).catch(error => {
+                                                    console.log(error);
+                                                    res.status(500).send({
+                                                        message: error.code,
+                                                    });
+                                                });
+                                        }).catch(error => {
+                                            console.log(error);
+                                            res.status(500).send({
+                                                message: "aca hubo un error",
+                                            });
+                                        });
                                 }).catch(error => {
                                     console.log(error);
                                     res.status(500).send({

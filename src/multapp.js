@@ -3,6 +3,7 @@ const router = Router();
 const admin = require('firebase-admin');
 require('dotenv/config');
 const firebase = require("firebase");
+const multer = require('multer');
 
 // Request $CREDS environment variable
 const keysEnvVar = process.env['CREDS'];
@@ -26,14 +27,23 @@ admin.initializeApp({
   storageBucket: process.env.STORAGE_BUCKET,
 });
 const auth = admin.auth();
+const bucket = admin.storage().bucket();
+const imageService = require('./services/imageService.js')(bucket)
 
 // referencia a cloud firestore
 const db = admin.firestore();
 
+const imageMiddleware = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+      fileSize: 5 * 1024 * 1024, // keep images size < 5 MB
+  },
+});
+
 const autenticacionService = require('./services/autenticacionService.js')(db, auth, firebase)
 const autenticacionController = require('./controllers/autenticacionController.js')(autenticacionService)
 
-const usuariosService = require('./services/usuariosService.js')(db, auth)
+const usuariosService = require('./services/usuariosService.js')(db, auth, imageService)
 const usuariosController = require('./controllers/usuariosController.js')(usuariosService)
 
 const perfilService = require('./services/perfilService.js')(db, auth)
@@ -66,7 +76,8 @@ router.get("/getUsuarios", usuariosController.getUsuarios);
 router.get("/getUsuario", usuariosController.getUsuarioById);
 
 // crear un usuario
-router.post("/addUsuario", usuariosController.addUsuario);
+// imageMiddleware agrega a req.file el archivo que se manda en el parametro 'image'
+router.post("/addUsuario", imageMiddleware.single('file'), usuariosController.addUsuario);
 
 // editar un usuario
 router.post("/editUsuario", usuariosController.editUsuario);
