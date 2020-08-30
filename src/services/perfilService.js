@@ -1,4 +1,4 @@
-module.exports = (db, auth, storage) => {
+module.exports = (db, auth) => {
     return {
         getPerfil: (req, res, next) => {
             auth.getUser(req.query.uid)
@@ -30,7 +30,9 @@ module.exports = (db, auth, storage) => {
                         });
                 }).catch(error => {
                     console.log(error);
-                    res.status(500).send("Error al obtener datos de usuario");
+                    res.status(500).send({
+                        message: error.code,
+                    });
                 });
         },
     }
