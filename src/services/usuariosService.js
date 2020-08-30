@@ -80,7 +80,7 @@ module.exports = (db, auth, imageService) => {
                                 piso: req.body.piso,
                                 departamento: req.body.departamento,
                                 localidad: req.body.localidad,
-                                provincia: req.body.provincia,                    
+                                provincia: req.body.provincia,
                             })
                                 .then(() => {
                                     imageService.uploader("avatar", uid, req, res, null) // sube su avatar a storage
@@ -128,10 +128,22 @@ module.exports = (db, auth, imageService) => {
             auth.updateUser(req.body.id, {
                 email: req.body.email,
                 phoneNumber: req.body.telefono,
-                displayName: req.body.datos.nombre + " " + req.body.datos.apellido,
+                displayName: req.body.nombre + " " + req.body.apellido,
             })
                 .then(() => {
-                    db.collection("usuarios").doc(req.body.id).update(req.body.datos)
+                    db.collection("usuarios").doc(req.body.id).update({
+                        dni: req.body.dni,
+                        apellido: req.body.apellido,
+                        nombre: req.body.nombre,
+                        fechaNacimiento: req.body.fechaNacimiento,
+                        sexo: req.body.sexo,
+                        calle: req.body.calle,
+                        numero: req.body.numero,
+                        piso: req.body.piso,
+                        departamento: req.body.departamento,
+                        localidad: req.body.localidad,
+                        provincia: req.body.provincia,
+                    })
                         .then(() => {
                             res.status(200).send("Usuario " + req.body.id + " actualizado correctamente");
                         }).catch(error => {
@@ -146,7 +158,6 @@ module.exports = (db, auth, imageService) => {
                         message: error.code,
                     });
                 });
-            
         },
         deleteUsuario: (req, res, next) => {
             // FALTA
