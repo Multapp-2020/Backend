@@ -57,6 +57,8 @@ module.exports = (db, auth, imageService) => {
         addUsuario: (req, res, storage) => {
             // aca tambien habria que:
             // mandarle correo al tipo con su contraseña
+            console.log("SE VA A LOGGEAR EL OBJETO QUE MANDA EL FRONT!!!!!!!!!!!!!!!!");
+            console.log(req.body);
             let password = (Math.floor(Math.random() * (1000000 - 100000) ) + 100000).toString();
             console.log(password);
             auth.createUser({ // crea el usuario
@@ -125,6 +127,8 @@ module.exports = (db, auth, imageService) => {
             // aca tambien habria que:
             // guardar la foto nueva en storage
             // mandarle correo al tipo con el cambio de correo
+            console.log("SE VA A LOGGEAR EL OBJETO QUE MANDA EL FRONT!!!!!!!!!!!!!!!!");
+            console.log(req.body);
             auth.updateUser(req.body.id, {
                 email: req.body.email,
                 phoneNumber: req.body.telefono,

@@ -80,7 +80,7 @@ router.get("/getUsuario", usuariosController.getUsuarioById);
 router.post("/addUsuario", imageMiddleware.single('file'), usuariosController.addUsuario);
 
 // editar un usuario
-router.post("/editUsuario", usuariosController.editUsuario);
+router.post("/editUsuario", imageMiddleware.single('file'), usuariosController.editUsuario);
 
 // eliminar un usuario
 router.delete("/deleteUsuario", usuariosController.deleteUsuario);
