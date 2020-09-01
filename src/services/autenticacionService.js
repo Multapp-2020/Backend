@@ -102,7 +102,12 @@ module.exports = (db, auth, firebase) => {
                     })
                         .then(() => {
                             // mandar el correo
-                            res.send("Contraseña recuperada");
+                            firebase.auth().sendPasswordResetEmail(req.body.email).then(() => {
+                                res.send('E-mail enviado');
+                            }).catch(function(error) {
+                                res.json(error);
+                            });
+                            //res.send("Contraseña recuperada");
                         }).catch(error => {
                             console.log(error);
                             res.status(401).send({
