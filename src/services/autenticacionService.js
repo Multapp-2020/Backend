@@ -89,28 +89,13 @@ module.exports = (db, auth, firebase) => {
                 });
         },
         recuperarContrasena: (req, res, next) => {
-            // mandar mail con la nueva contraseña
-            const password = (Math.floor(Math.random() * (1000000 - 100000) ) + 100000).toString();
-            console.log("password", password);
-            auth.getUserByEmail(req.body.email)
-                .then(userRecord => {
-                    auth.updateUser(userRecord.uid, {
-                        password: password,
-                    })
-                        .then(() => {
-                            // mandar el correo
-                            res.send("Contraseña recuperada");
-                        }).catch(error => {
-                            console.log(error);
-                            res.status(401).send({
-                                message: error.code,
-                            });
-                        });
+            firebase.auth().sendPasswordResetEmail(req.body.email)
+                .then(() => {
+                    console.log('E-mail enviado');
+                    res.send('E-mail enviado');
                 }).catch(error => {
                     console.log(error);
-                    res.status(401).send({
-                        message: error.code,
-                    });
+                    res.json(error);
                 });
         }
     }
