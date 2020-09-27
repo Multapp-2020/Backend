@@ -1,39 +1,39 @@
-module.exports = (db, auth, imageService) => {
+module.exports = (db, auth, imageService, firebase) => {
     return {
         getUsuarioById: (req, res, next) => {
             auth.getUser(req.query.id)
-            .then(userRecord => {
-                db.collection("usuarios").doc(userRecord.uid).get()
-                    .then(snapshot => {
-                        const datos = {
-                            id: userRecord.uid,
-                            foto: userRecord.photoURL,
-                            displayName: userRecord.displayName,
-                            rol: userRecord.customClaims.rol,
-                            email: userRecord.email,
-                            dni: snapshot.data().dni,
-                            apellido: snapshot.data().apellido,
-                            nombre: snapshot.data().nombre,
-                            fechaNacimiento: snapshot.data().fechaNacimiento,
-                            sexo: snapshot.data().sexo,
-                            telefono: userRecord.phoneNumber,
-                            direccion: snapshot.data().calle + " " + snapshot.data().numero,
-                            calle: snapshot.data().calle,
-                            numero: snapshot.data().numero,
-                            piso: snapshot.data().piso,
-                            departamento: snapshot.data().departamento,
-                            localidad: snapshot.data().localidad,
-                            provincia: snapshot.data().provincia,
-                        }
-                        res.send(datos);
-                    }).catch(error => {
-                        console.log(error);
-                        res.send(error);
-                    });
-            }).catch(error => {
-                console.log(error);
-                res.status(500).send("Error al obtener datos de usuario");
-            });
+                .then(userRecord => {
+                    db.collection("usuarios").doc(userRecord.uid).get()
+                        .then(snapshot => {
+                            const datos = {
+                                id: userRecord.uid,
+                                foto: userRecord.photoURL,
+                                displayName: userRecord.displayName,
+                                rol: userRecord.customClaims.rol,
+                                email: userRecord.email,
+                                dni: snapshot.data().dni,
+                                apellido: snapshot.data().apellido,
+                                nombre: snapshot.data().nombre,
+                                fechaNacimiento: snapshot.data().fechaNacimiento,
+                                sexo: snapshot.data().sexo,
+                                telefono: userRecord.phoneNumber,
+                                direccion: snapshot.data().calle + " " + snapshot.data().numero,
+                                calle: snapshot.data().calle,
+                                numero: snapshot.data().numero,
+                                piso: snapshot.data().piso,
+                                departamento: snapshot.data().departamento,
+                                localidad: snapshot.data().localidad,
+                                provincia: snapshot.data().provincia,
+                            }
+                            res.send(datos);
+                        }).catch(error => {
+                            console.log(error);
+                            res.send(error);
+                        });
+                }).catch(error => {
+                    console.log(error);
+                    res.status(500).send("Error al obtener datos de usuario");
+                });
         },
         getUsuarios: (req, res, next) => {
             auth.listUsers()
@@ -47,7 +47,7 @@ module.exports = (db, auth, imageService) => {
                             email: userRecord.email,
                             foto: userRecord.photoURL,
                         });
-                    });     
+                    });
                     res.status(200).send(usuarios);
                 }).catch(error => {
                     console.log(error);
@@ -57,51 +57,58 @@ module.exports = (db, auth, imageService) => {
         addUsuario: (req, res, storage) => {
             // aca tambien habria que:
             // mandarle correo al tipo con su contraseña
-            let password = (Math.floor(Math.random() * (1000000 - 100000) ) + 100000).toString();
+            let password = (Math.floor(Math.random() * (1000000 - 100000)) + 100000).toString();
             console.log(password);
             auth.createUser({ // crea el usuario
-                email: req.body.email,
-                password: password,
-                displayName: req.body.nombre + " " + req.body.apellido,
-                phoneNumber: req.body.telefono,
-            })
+                    email: req.body.email,
+                    password: password,
+                    displayName: req.body.nombre + " " + req.body.apellido,
+                    phoneNumber: req.body.telefono,
+                })
                 .then(userRecord => {
                     let uid = userRecord.uid;
-                    auth.setCustomUserClaims(uid, {rol: req.body.rol}) // setea el rol del usuario
+                    auth.setCustomUserClaims(uid, { rol: req.body.rol }) // setea el rol del usuario
                         .then(() => { // guarda los datos personales en la base de datos
                             db.collection("usuarios").doc(uid).set({
-                                dni: req.body.dni,
-                                apellido: req.body.apellido,
-                                nombre: req.body.nombre,
-                                fechaNacimiento: req.body.fechaNacimiento,
-                                sexo: req.body.sexo,
-                                calle: req.body.calle,
-                                numero: req.body.numero,
-                                piso: req.body.piso,
-                                departamento: req.body.departamento,
-                                localidad: req.body.localidad,
-                                provincia: req.body.provincia,
-                            })
+                                    dni: req.body.dni,
+                                    apellido: req.body.apellido,
+                                    nombre: req.body.nombre,
+                                    fechaNacimiento: req.body.fechaNacimiento,
+                                    sexo: req.body.sexo,
+                                    calle: req.body.calle,
+                                    numero: req.body.numero,
+                                    piso: req.body.piso,
+                                    departamento: req.body.departamento,
+                                    localidad: req.body.localidad,
+                                    provincia: req.body.provincia,
+                                })
                                 .then(() => {
-                                    imageService.uploader("avatar", uid, req, res, null) // sube su avatar a storage
-                                        .then(publicURL => {
-                                            auth.updateUser(uid, { // asigna la url del avatar al usuario
-                                                photoURL: publicURL,
-                                            })
-                                                .then(() => {
-                                                    res.status(201).send("Usuario " + uid + " creado correctamente");
-                                                }).catch(error => {
-                                                    console.log(error);
-                                                    res.status(500).send({
-                                                        message: error.code,
+                                    if (req.file) {
+                                        imageService.uploader("avatar", uid, req, res, null) // sube su avatar a storage
+                                            .then(publicURL => {
+                                                auth.updateUser(uid, { // asigna la url del avatar al usuario
+                                                        photoURL: publicURL,
+                                                    })
+                                                    .then(() => {
+                                                        console.log("Usuario " + uid + " creado correctamente");
+                                                    }).catch(error => {
+                                                        console.log(error);
+                                                        res.status(500).send({
+                                                            message: error.code,
+                                                        });
                                                     });
+                                            }).catch(error => {
+                                                console.log(error);
+                                                res.status(500).send({
+                                                    message: "aca hubo un error",
                                                 });
-                                        }).catch(error => {
-                                            console.log(error);
-                                            res.status(500).send({
-                                                message: "aca hubo un error",
                                             });
-                                        });
+                                    }
+                                    firebase.auth().sendPasswordResetEmail(req.body.email).then(() => {
+                                        res.status(201).send("Usuario " + uid + " creado correctamente");
+                                    }).catch(function(error) {
+                                        res.json(error);
+                                    });
                                 }).catch(error => {
                                     console.log(error);
                                     res.status(500).send({
@@ -123,48 +130,49 @@ module.exports = (db, auth, imageService) => {
         },
         editUsuario: (req, res, storage) => {
             // aca tambien habria que:
-            // guardar la foto nueva en storage
             // mandarle correo al tipo con el cambio de correo
-            auth.updateUser(req.body.id, {
-                email: req.body.email,
-                phoneNumber: req.body.telefono,
-                displayName: req.body.nombre + " " + req.body.apellido,
-            })
+            auth.updateUser(req.body.id, { // actualiza los datos en authentication
+                    email: req.body.email,
+                    phoneNumber: req.body.telefono,
+                    displayName: req.body.nombre + " " + req.body.apellido,
+                })
                 .then(() => {
-                    db.collection("usuarios").doc(req.body.id).update({
-                        dni: req.body.dni,
-                        apellido: req.body.apellido,
-                        nombre: req.body.nombre,
-                        fechaNacimiento: req.body.fechaNacimiento,
-                        sexo: req.body.sexo,
-                        calle: req.body.calle,
-                        numero: req.body.numero,
-                        piso: req.body.piso,
-                        departamento: req.body.departamento,
-                        localidad: req.body.localidad,
-                        provincia: req.body.provincia,
-                    })
+                    db.collection("usuarios").doc(req.body.id).update({ // actualiza los datos en firestore
+                            dni: req.body.dni,
+                            apellido: req.body.apellido,
+                            nombre: req.body.nombre,
+                            fechaNacimiento: req.body.fechaNacimiento,
+                            sexo: req.body.sexo,
+                            calle: req.body.calle,
+                            numero: req.body.numero,
+                            piso: req.body.piso,
+                            departamento: req.body.departamento,
+                            localidad: req.body.localidad,
+                            provincia: req.body.provincia,
+                        })
                         .then(() => {
                             if (req.file) { // si se carga foto se actualiza, sino no
                                 imageService.uploader("avatar", req.body.id, req, res, null) // sube su avatar a storage
-                                        .then(publicURL => {
-                                            auth.updateUser(req.body.id, { // asigna la url del avatar al usuario
+                                    .then(publicURL => {
+                                        auth.updateUser(req.body.id, { // asigna la url del avatar al usuario
                                                 photoURL: publicURL,
                                             })
-                                                .then(() => {
-                                                    res.status(201).send("Usuario " + req.body.id + " actualizado correctamente");
-                                                }).catch(error => {
-                                                    console.log(error);
-                                                    res.status(500).send({
-                                                        message: error.code,
-                                                    });
+                                            .then(() => {
+                                                res.status(201).send("Usuario " + req.body.id + " actualizado correctamente");
+                                            }).catch(error => {
+                                                console.log(error);
+                                                res.status(500).send({
+                                                    message: error.code,
                                                 });
-                                        }).catch(error => {
-                                            console.log(error);
-                                            res.status(500).send({
-                                                message: "aca hubo un error",
                                             });
+                                    }).catch(error => {
+                                        console.log(error);
+                                        res.status(500).send({
+                                            message: "aca hubo un error",
                                         });
+                                    });
+                            } else { // si no se cargo foto, se manda la response asi nomas
+                                res.status(201).send("Usuario " + req.body.id + " actualizado correctamente");
                             }
                         }).catch(error => {
                             console.log(error);

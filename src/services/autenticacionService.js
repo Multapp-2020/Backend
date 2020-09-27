@@ -78,36 +78,21 @@ module.exports = (db, auth, firebase) => {
             //res.redirect("/");
         },
         cambiarContrasena: (req, res, next) => {
-            // FALTA HACER
-            // verificar que req.body.contrasenaActual sea realmente la contraseña actual
-            auth.updateUser(req.body.uid, {
-                password: req.body.contrasenaNueva,
-            })
-                .then(() => {
-                    res.status(200).send("Contraseña actualizada exitosamente");
-                }).catch(error => {
-                    console.log(error);
-                    res.send(error);
-                });
-        },
-        recuperarContrasena: (req, res, next) => {
-            // FALTA HACER
-            // mandar mail con la nueva contraseña
-            const password = (Math.floor(Math.random() * (1000000 - 100000) ) + 100000).toString();
-            console.log("password", password);
-            auth.getUserByEmail(req.body.email)
+            auth.getUser(req.body.uid) // obtener el email del usuario
                 .then(userRecord => {
-                    auth.updateUser(userRecord.uid, {
-                        password: password,
-                    })
+                    firebase.auth().signInWithEmailAndPassword(userRecord.email, req.body.contrasenaActual) // iniciar sesion para ver si la contraseña actual es correcta
                         .then(() => {
-                            // mandar el correo
-                            firebase.auth().sendPasswordResetEmail(req.body.email).then(() => {
-                                res.send('E-mail enviado');
-                            }).catch(function(error) {
-                                res.json(error);
-                            });
-                            //res.send("Contraseña recuperada");
+                            auth.updateUser(req.body.uid, { // actualizar la contraseña
+                                password: req.body.contrasenaNueva,
+                            })
+                                .then(() => {
+                                    res.status(200).send("Contraseña actualizada exitosamente");
+                                }).catch(error => {
+                                    console.log(error);
+                                    res.status(401).send({
+                                        message: error.code,
+                                    });
+                                });
                         }).catch(error => {
                             console.log(error);
                             res.status(401).send({
@@ -119,6 +104,16 @@ module.exports = (db, auth, firebase) => {
                     res.status(401).send({
                         message: error.code,
                     });
+                });
+        },
+        recuperarContrasena: (req, res, next) => {
+            firebase.auth().sendPasswordResetEmail(req.body.email)
+                .then(() => {
+                    console.log('E-mail enviado');
+                    res.send('E-mail enviado');
+                }).catch(error => {
+                    console.log(error);
+                    res.json(error);
                 });
         }
     }
