@@ -43,7 +43,7 @@ const imageMiddleware = multer({
 const autenticacionService = require('./services/autenticacionService.js')(db, auth, firebase)
 const autenticacionController = require('./controllers/autenticacionController.js')(autenticacionService)
 
-const usuariosService = require('./services/usuariosService.js')(db, auth, imageService)
+const usuariosService = require('./services/usuariosService.js')(db, auth, imageService, firebase)
 const usuariosController = require('./controllers/usuariosController.js')(usuariosService)
 
 const perfilService = require('./services/perfilService.js')(db, auth)
