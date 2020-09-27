@@ -31,24 +31,24 @@ module.exports = (db, auth, firebase) => {
                     message: error.code,
                 });
             })
-                .then(() => {
-                    return firebase.auth().signOut();
-                }).catch(error => {
-                    var errorCode = error.code;
-                    var errorMessage = error.message;
-                    if (errorCode === 'auth/wrong-password') {
-                        res.jsonp({
-                            fail : true, 
-                            mensaje : "CONTRASEÑA INCORRECTA"
-                        });
-                    } else {
-                        console.log(error);
-                        res.jsonp({
-                            fail : true, 
-                            mensaje : errorMessage
-                        });
-                    }
-                });
+            .then(() => {
+                return firebase.auth().signOut();
+            }).catch(error => {
+                var errorCode = error.code;
+                var errorMessage = error.message;
+                if (errorCode === 'auth/wrong-password') {
+                    res.jsonp({
+                        fail: true,
+                        mensaje: "CONTRASEÑA INCORRECTA"
+                    });
+                } else {
+                    console.log(error);
+                    res.jsonp({
+                        fail: true,
+                        mensaje: errorMessage
+                    });
+                }
+            });
     }
 
     return {
@@ -83,8 +83,8 @@ module.exports = (db, auth, firebase) => {
                     firebase.auth().signInWithEmailAndPassword(userRecord.email, req.body.contrasenaActual) // iniciar sesion para ver si la contraseña actual es correcta
                         .then(() => {
                             auth.updateUser(req.body.uid, { // actualizar la contraseña
-                                password: req.body.contrasenaNueva,
-                            })
+                                    password: req.body.contrasenaNueva,
+                                })
                                 .then(() => {
                                     res.status(200).send("Contraseña actualizada exitosamente");
                                 }).catch(error => {
@@ -107,7 +107,10 @@ module.exports = (db, auth, firebase) => {
                 });
         },
         recuperarContrasena: (req, res, next) => {
-            firebase.auth().sendPasswordResetEmail(req.body.email)
+            const actionCodeSettings = {
+                url: 'https://multapp-front.herokuapp.com/'
+            };
+            firebase.auth().sendPasswordResetEmail(req.body.email, actionCodeSettings)
                 .then(() => {
                     console.log('E-mail enviado');
                     res.send('E-mail enviado');

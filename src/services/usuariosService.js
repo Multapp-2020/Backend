@@ -104,11 +104,15 @@ module.exports = (db, auth, imageService, firebase) => {
                                                 });
                                             });
                                     }
-                                    firebase.auth().sendPasswordResetEmail(req.body.email).then(() => {
-                                        res.status(201).send("Usuario " + uid + " creado correctamente");
-                                    }).catch(function(error) {
-                                        res.json(error);
-                                    });
+                                    const actionCodeSettings = {
+                                        url: 'https://multapp-front.herokuapp.com/'
+                                    };
+                                    firebase.auth().sendPasswordResetEmail(req.body.email, actionCodeSettings)
+                                        .then(() => {
+                                            res.status(201).send("Usuario " + uid + " creado correctamente");
+                                        }).catch(function(error) {
+                                            res.json(error);
+                                        });
                                 }).catch(error => {
                                     console.log(error);
                                     res.status(500).send({
