@@ -2,38 +2,51 @@ module.exports = (db, auth, imageService, firebase) => {
     return {
         getUsuarioById: (req, res, next) => {
             auth.getUser(req.query.id)
-                .then(userRecord => {
-                    db.collection("usuarios").doc(userRecord.uid).get()
-                        .then(snapshot => {
-                            const datos = {
-                                id: userRecord.uid,
-                                foto: userRecord.photoURL,
-                                displayName: userRecord.displayName,
-                                rol: userRecord.customClaims.rol,
-                                email: userRecord.email,
-                                dni: snapshot.data().dni,
-                                apellido: snapshot.data().apellido,
-                                nombre: snapshot.data().nombre,
-                                fechaNacimiento: snapshot.data().fechaNacimiento,
-                                sexo: snapshot.data().sexo,
-                                telefono: userRecord.phoneNumber,
-                                direccion: snapshot.data().calle + " " + snapshot.data().numero,
-                                calle: snapshot.data().calle,
-                                numero: snapshot.data().numero,
-                                piso: snapshot.data().piso,
-                                departamento: snapshot.data().departamento,
-                                localidad: snapshot.data().localidad,
-                                provincia: snapshot.data().provincia,
-                            }
-                            res.send(datos);
-                        }).catch(error => {
-                            console.log(error);
-                            res.send(error);
-                        });
-                }).catch(error => {
-                    console.log(error);
-                    res.status(500).send("Error al obtener datos de usuario");
-                });
+            .then(userRecord => {
+                db.collection("usuarios").doc(userRecord.uid).get()
+                    .then(snapshot => {
+                        let direccion = snapshot.data().calle; // arma el string de la direccion
+                        if (snapshot.data().numero === "") {
+                            direccion = direccion.concat(" S/N");
+                        }
+                        else {
+                            direccion = direccion.concat(" ", snapshot.data().numero);
+                        }
+                        if (snapshot.data().piso !== "") {
+                            direccion = direccion.concat(", Piso ", snapshot.data().piso);
+                        }
+                        if (snapshot.data().departamento !== "") {
+                            direccion = direccion.concat(", Departamento ", snapshot.data().departamento);
+                        }
+                        const datos = {
+                            id: userRecord.uid,
+                            foto: userRecord.photoURL,
+                            displayName: userRecord.displayName,
+                            rol: userRecord.customClaims.rol,
+                            email: userRecord.email,
+                            dni: snapshot.data().dni,
+                            apellido: snapshot.data().apellido,
+                            nombre: snapshot.data().nombre,
+                            fechaNacimiento: snapshot.data().fechaNacimiento,
+                            sexo: snapshot.data().sexo,
+                            telefono: userRecord.phoneNumber,
+                            direccion: direccion,
+                            calle: snapshot.data().calle,
+                            numero: snapshot.data().numero,
+                            piso: snapshot.data().piso,
+                            departamento: snapshot.data().departamento,
+                            localidad: snapshot.data().localidad,
+                            provincia: snapshot.data().provincia,
+                        }
+                        res.send(datos);
+                    }).catch(error => {
+                        console.log(error);
+                        res.send(error);
+                    });
+            }).catch(error => {
+                console.log(error);
+                res.status(500).send("Error al obtener datos de usuario");
+            });
         },
         getUsuarios: (req, res, next) => {
             auth.listUsers()
@@ -107,12 +120,11 @@ module.exports = (db, auth, imageService, firebase) => {
                                     const actionCodeSettings = {
                                         url: 'https://multapp-front.herokuapp.com/'
                                     };
-                                    firebase.auth().sendPasswordResetEmail(req.body.email, actionCodeSettings)
-                                        .then(() => {
-                                            res.status(201).send("Usuario " + uid + " creado correctamente");
-                                        }).catch(function(error) {
-                                            res.json(error);
-                                        });
+                                    firebase.auth().sendPasswordResetEmail(req.body.email, actionCodeSettings).then(() => {
+                                        res.status(201).send("Usuario " + uid + " creado correctamente");
+                                    }).catch(function(error) {
+                                        res.json(error);
+                                    });
                                 }).catch(error => {
                                     console.log(error);
                                     res.status(500).send({
