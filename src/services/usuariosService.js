@@ -37,6 +37,7 @@ module.exports = (db, auth, imageService, firebase) => {
                             departamento: snapshot.data().departamento,
                             localidad: snapshot.data().localidad,
                             provincia: snapshot.data().provincia,
+                            patentes: snapshot.data().patentes,
                         }
                         res.send(datos);
                     }).catch(error => {
@@ -94,6 +95,7 @@ module.exports = (db, auth, imageService, firebase) => {
                                     departamento: req.body.departamento,
                                     localidad: req.body.localidad,
                                     provincia: req.body.provincia,
+                                    patentes: req.body.patentes
                                 })
                                 .then(() => {
                                     if (req.file) {
@@ -165,6 +167,7 @@ module.exports = (db, auth, imageService, firebase) => {
                             departamento: req.body.departamento,
                             localidad: req.body.localidad,
                             provincia: req.body.provincia,
+                            patentes: req.body.patentes,
                         })
                         .then(() => {
                             if (req.file) { // si se carga foto se actualiza, sino no

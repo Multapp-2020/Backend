@@ -40,14 +40,20 @@ const imageMiddleware = multer({
   },
 });
 
+
+
 const autenticacionService = require('./services/autenticacionService.js')(db, auth, firebase)
 const autenticacionController = require('./controllers/autenticacionController.js')(autenticacionService)
+
+const multasService = require('./services/multasService.js')(db, auth, imageService)
+const multasController = require('./controllers/multasController.js')(multasService)
 
 const usuariosService = require('./services/usuariosService.js')(db, auth, imageService, firebase)
 const usuariosController = require('./controllers/usuariosController.js')(usuariosService)
 
 const perfilService = require('./services/perfilService.js')(db, auth)
 const perfilController = require('./controllers/perfilController.js')(perfilService)
+
 
 
 /*** Endpoints de autenticación ***/
@@ -61,9 +67,28 @@ router.get('/sessionLogout', autenticacionController.sessionLogout)
 // cambiar contraseña
 router.post("/cambiarContrasena", autenticacionController.cambiarContrasena);
 
-
 // cambiar contraseña
 router.post("/recuperarContrasena", autenticacionController.recuperarContrasena);
+
+
+
+/*** Endpoints de multas ***/
+
+// obtener multas resumidas
+router.get("/getMultas", multasController.getAllMultas);
+
+// obtener todos los datos de una sola multa
+router.get("/getMulta", multasController.getMultaById);
+
+// cambiar de estado una multa
+router.post("/actualizarEstado", multasController.actualizarEstado);
+
+// guardar una multa
+router.post('/multa', (req, res) => {
+    console.log(req.body);
+    db.collection('multas').add(req.body);
+    res.send('Multa guardada');
+});
 
 
 
@@ -85,11 +110,12 @@ router.post("/editUsuario", imageMiddleware.single('file'), usuariosController.e
 // eliminar un usuario
 router.delete("/deleteUsuario", usuariosController.deleteUsuario);
 
+
+
 /*** Endpoints de perfil ***/
 
 // obtener el perfil del usuario actual
 router.get("/getPerfil", perfilController.getPerfil);
-
 
 
 
