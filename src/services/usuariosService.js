@@ -119,9 +119,15 @@ module.exports = (db, auth, imageService, firebase) => {
                                                 });
                                             });
                                     }
-                                    const actionCodeSettings = {
+                                    var actionCodeSettings = {};
+                                    if (req.body.rol == "Ciudadano"){
+                                        actionCodeSettings.url = 'https://multapp-citizen.herokuapp.com/';
+                                    } else {
+                                        actionCodeSettings.url = 'https://multapp-front.herokuapp.com/';
+                                    }
+                                    /* const actionCodeSettings = {
                                         url: 'https://multapp-front.herokuapp.com/'
-                                    };
+                                    }; */
                                     firebase.auth().sendPasswordResetEmail(req.body.email, actionCodeSettings).then(() => {
                                         res.status(201).send("Usuario " + uid + " creado correctamente");
                                     }).catch(function(error) {
