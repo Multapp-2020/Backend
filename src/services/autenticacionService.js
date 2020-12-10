@@ -107,13 +107,21 @@ module.exports = (db, auth, firebase) => {
                 });
         },
         recuperarContrasena: (req, res, next) => {
-            const actionCodeSettings = {
+            var actionCodeSettings = {};
+            if (req.body.rol){
+                if (req.body.rol == "Ciudadano"){
+                    actionCodeSettings.url = 'https://multapp-citizen.herokuapp.com/';
+                }
+            } else {
+                actionCodeSettings.url = 'https://multapp-front.herokuapp.com/';
+            }
+            /* const actionCodeSettings = {
                 url: 'https://multapp-front.herokuapp.com/'
-            };
+            }; */
             firebase.auth().sendPasswordResetEmail(req.body.email, actionCodeSettings)
                 .then(() => {
                     console.log('E-mail enviado');
-                    res.send('E-mail enviado');
+                    res.send('E-mail enviado con url: ' + actionCodeSettings.url);
                 }).catch(error => {
                     console.log(error);
                     res.json(error);
