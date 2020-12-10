@@ -8,6 +8,9 @@ module.exports = function(multasService) {
         },
         actualizarEstado: function (req, res, next) {
             multasService.actualizarEstado(req, res, next)
+        },
+        getMultaByUser: function (req, res, next) {
+            multasService.getMultaByUser(req, res, next)
         }
     }
 }
