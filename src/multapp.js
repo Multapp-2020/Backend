@@ -90,6 +90,9 @@ router.post('/multa', (req, res) => {
     res.send('Multa guardada');
 });
 
+// obtener multas por usuario
+router.get("/multas-by-user", multasController.getMultaByUser);
+
 
 
 /*** Endpoints de usuarios ***/

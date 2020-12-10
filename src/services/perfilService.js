@@ -21,6 +21,7 @@ module.exports = (db, auth) => {
                                 direccion: snapshot.data().calle + " " + snapshot.data().numero,
                                 localidad: snapshot.data().localidad,
                                 provincia: snapshot.data().provincia,
+                                patentes: snapshot.data().patentes,
                             }
                             response.datos = datos;
                             res.send(response);
