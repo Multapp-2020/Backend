@@ -1,4 +1,5 @@
 const sendEmail = require('../utils/mailSender.js');
+const templateTicket = require('../mail/mail');
 
 module.exports = function (db, auth, storage) {
     return {
@@ -67,16 +68,37 @@ module.exports = function (db, auth, storage) {
                 razon: req.body.razon,
                 idSupervisor: req.body.idSupervisor,
             }).then(async snapshot => {
-                const user = await db.collection("usuarios").where("dni", "==", snapshot.conductor.nroDocumento).get();
+                const multaVar = await db.collection("multas").doc(req.body.id).get()
+                .then(snapshot => { 
+                    return snapshot.data();
+                });
+                const documento = multaVar.conductor.nroDocumento;
+                const user = await db.collection("usuarios").where("dni", "==", documento).get()
+                .then(snapshot => { 
+                    // console.log(snapshot.docs[0].data());
+                    // return snapshot.docs[0].data();
+                    const respuesta = {
+                        id: snapshot.docs[0].id,
+                        data: snapshot.docs[0].data()
+                    };
+                    return respuesta;
+                });
                 const authUser = await auth.getUser(user.id);
-                sendEmail(authUser.email, "Su multa ha sido actualizado recientemente.", "Nuevo estado:" + req.body.estado)
-                res.send("Estado de multa " + req.id + " actualizado con éxito");
+                const plantilla = templateTicket(user.data.nombre, user.data.apellido);
+                sendEmail(authUser.email, "Multas con Actualizaciones Recientes", plantilla);
+                res.send("Estado de multa " + req.body.id + " actualizado con éxito");
             }).catch(error => {
                 console.log(error);
                 res.status(500).send({
                     message: error.code,
                 });
             });
+            /* try {
+                sendEmail("mansilla.alberto.23@gmail.com", "Su multa ha sido actualizado recientemente.", "Nuevo estado:" + req.body.estado)
+                res.send("Estado de multa " + " actualizado con éxito");
+            } catch (e){
+                throw(e);
+            } */
         },
         getMultaByUser: function (req, res, next) {
             db.collection("usuarios").doc(req.query.uid).get()
