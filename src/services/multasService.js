@@ -1,3 +1,5 @@
+const sendEmail = require('../utils/mailSender.js');
+
 module.exports = function (db, auth, storage) {
     return {
         getMultaById: function (req, res, next) {
@@ -64,7 +66,10 @@ module.exports = function (db, auth, storage) {
                 estado: req.body.estado,
                 razon: req.body.razon,
                 idSupervisor: req.body.idSupervisor,
-            }).then(snapshot => {
+            }).then(async snapshot => {
+                const user = await db.collection("usuarios").where("dni", "==", snapshot.conductor.nroDocumento).get();
+                const authUser = await auth.getUser(user.id);
+                sendEmail(authUser.email, "Su multa ha sido actualizado recientemente.", "Nuevo estado:" + req.body.estado)
                 res.send("Estado de multa " + req.id + " actualizado con éxito");
             }).catch(error => {
                 console.log(error);
